@@ -5,11 +5,24 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
+
+	"github.com/abdol-ahmed/pokedexcli/internal/pokeapi"
 )
+
+type config struct {
+	pokeAPIClient    pokeapi.Client
+	nextLocationsURL *string
+	prevLocationsURL *string
+}
 
 func StartREPL() {
 	scanner := bufio.NewScanner(os.Stdin)
-	cfg := &config{}
+
+	cfg := &config{
+		pokeAPIClient: pokeapi.NewClient(5 * time.Second),
+	}
+
 	for {
 		scanner.Scan()
 		words := cleanInput(scanner.Text())
@@ -22,7 +35,6 @@ func StartREPL() {
 }
 
 func executeCommand(commandName string, cfg *config) {
-
 	if cmd, ok := getCommands()[commandName]; ok {
 		err := cmd.callback(cfg)
 		if err != nil {

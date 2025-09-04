@@ -1,0 +1,13 @@
+package pokeapi
+
+type LocationArea struct {
+	Name string
+	Url  string
+}
+
+type Locations struct {
+	Count    int
+	Next     *string
+	Previous *string
+	Results  []LocationArea
+}

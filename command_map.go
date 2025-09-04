@@ -1,59 +1,43 @@
 package main
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
-	"net/http"
 )
 
-type locationArea struct {
-	Name string
-	Url  string
-}
-
-type config struct {
-	Count    int
-	Next     string
-	Previous string
-	Results  []locationArea
-}
-
 func commandMap(cfg *config) error {
-	url := "https://pokeapi.co/api/v2/location-area"
-	if cfg.Next != "" {
-		url = cfg.Next
+	locations, err := cfg.pokeAPIClient.ListLocations(cfg.nextLocationsURL)
+	if err != nil {
+		return err
 	}
 
-	return getLocationAreas(url, cfg)
+	cfg.nextLocationsURL = locations.Next
+	cfg.prevLocationsURL = locations.Previous
+
+	for _, location := range locations.Results {
+		fmt.Println(location.Name)
+	}
+
+	return nil
 }
 
 func commandMapb(cfg *config) error {
-	url := "https://pokeapi.co/api/v2/location-area"
-	if cfg.Previous != "" {
-		url = cfg.Previous
+
+	if cfg.prevLocationsURL == nil {
+		return errors.New("you're on the first page")
 	}
 
-	return getLocationAreas(url, cfg)
-}
-
-func getLocationAreas(url string, cfg *config) error {
-	res, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-	data, err := io.ReadAll(res.Body)
+	locations, err := cfg.pokeAPIClient.ListLocations(cfg.prevLocationsURL)
 	if err != nil {
 		return err
 	}
 
-	if err := json.Unmarshal(data, &cfg); err != nil {
-		return err
+	cfg.nextLocationsURL = locations.Next
+	cfg.prevLocationsURL = locations.Previous
+
+	for _, location := range locations.Results {
+		fmt.Println(location.Name)
 	}
 
-	for _, area := range cfg.Results {
-		fmt.Println(area.Name)
-	}
 	return nil
 }
