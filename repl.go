@@ -30,13 +30,19 @@ func StartREPL() {
 			continue
 		}
 		command := words[0]
-		executeCommand(command, cfg)
+
+		var args []string
+		if len(words) > 1 {
+			args = words[1:]
+		}
+
+		executeCommand(command, cfg, args...)
 	}
 }
 
-func executeCommand(commandName string, cfg *config) {
+func executeCommand(commandName string, cfg *config, args ...string) {
 	if cmd, ok := getCommands()[commandName]; ok {
-		err := cmd.callback(cfg)
+		err := cmd.callback(cfg, args...)
 		if err != nil {
 			err2 := fmt.Errorf("%w", err)
 			fmt.Println(err2.Error())
@@ -54,7 +60,7 @@ func cleanInput(text string) []string {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(cfg *config) error
+	callback    func(cfg *config, args ...string) error
 }
 
 func getCommands() map[string]cliCommand {
@@ -78,6 +84,11 @@ func getCommands() map[string]cliCommand {
 			name:        "mapb",
 			description: "Navigate back to display a Pokémon location areas",
 			callback:    commandMapb,
+		},
+		"explore": {
+			name:        "explore <location_name>",
+			description: "Explore a location",
+			callback:    commandExplore,
 		},
 	}
 }
