@@ -28,6 +28,7 @@ func commandCatch(cfg *config, args ...string) error {
 		cfg.gameState.mu.Lock()
 		cfg.gameState.CaughtPokemons[pokemonName] = pokemon
 		cfg.gameState.mu.Unlock()
+		fmt.Printf("You may now inspect it with the inspect command.\n")
 	} else {
 		fmt.Printf("%s escaped!\n", pokemonName)
 	}
