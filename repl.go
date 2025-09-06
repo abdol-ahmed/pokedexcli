@@ -5,22 +5,36 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/abdol-ahmed/pokedexcli/internal/pokeapi"
 )
 
+// GameState holds all the state for your game, including the caught Pokémon.
+// A Mutex can be added here to protect the map from concurrent access.
+type GameState struct {
+	CaughtPokemons map[string]pokeapi.Pokemon
+	mu             sync.Mutex
+}
+
 type config struct {
 	pokeAPIClient    pokeapi.Client
 	nextLocationsURL *string
 	prevLocationsURL *string
+	gameState        *GameState
 }
 
 func StartREPL() {
 	scanner := bufio.NewScanner(os.Stdin)
 
+	gameState := &GameState{
+		CaughtPokemons: make(map[string]pokeapi.Pokemon),
+	}
+
 	cfg := &config{
 		pokeAPIClient: pokeapi.NewClient(5 * time.Second),
+		gameState:     gameState,
 	}
 
 	for {
@@ -89,6 +103,11 @@ func getCommands() map[string]cliCommand {
 			name:        "explore <location_name>",
 			description: "Explore a location",
 			callback:    commandExplore,
+		},
+		"catch": {
+			name:        "catch <pokemon_name>",
+			description: "Catch a Pokemon",
+			callback:    commandCatch,
 		},
 	}
 }
